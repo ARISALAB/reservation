@@ -1,0 +1,237 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #F5F5DC;
+    color: #333333;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+h1, h2 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+}
+
+header {
+    background-color: #333333;
+    color: #B8860B;
+    padding: 1rem;
+    text-align: center;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2rem;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo img {
+    height: 50px;
+    margin-right: 1rem;
+}
+
+h1 {
+    flex-grow: 1;
+    text-align: center;
+    margin: 0;
+    font-size: 2rem;
+}
+
+main {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+}
+
+.welcome-section {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.welcome-section h2 {
+    font-size: 2.5rem;
+    color: #333333;
+    margin-bottom: 0.5rem;
+}
+
+.welcome-section p {
+    font-size: 1.2rem;
+    color: #555555;
+    font-style: italic;
+}
+
+.reservation-form-container, .admin-login-container, .admin-panel-container {
+    background: #fdf8e1;
+    padding: 2.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 500px;
+    border: 1px solid #d4c8a2;
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: #333333;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #B8860B;
+    border-radius: 4px;
+    box-sizing: border-box;
+    background-color: #ffffff;
+    font-family: 'Roboto', sans-serif;
+}
+
+button {
+    width: 100%;
+    padding: 1rem;
+    background-color: #B8860B;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 1rem;
+    font-family: 'Roboto', sans-serif;
+    font-weight: bold;
+}
+
+button:hover {
+    background-color: #926a09;
+}
+
+#loginButton {
+    background-color: #333333;
+    color: #B8860B;
+}
+
+#loginButton:hover {
+    background-color: #555555;
+}
+
+#confirmationMessage {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: #d4c8a2;
+    color: #333333;
+    border: 1px solid #B8860B;
+    border-radius: 4px;
+    text-align: center;
+    font-family: 'Roboto', sans-serif;
+}
+
+.hidden {
+    display: none;
+}
+
+footer {
+    background-color: #333333;
+    color: #B8860B;
+    text-align: center;
+    padding: 1rem;
+    margin-top: auto;
+}
+
+.lang-selector-container {
+    display: flex;
+    align-items: center;
+    color: #B8860B;
+}
+
+#language-selector {
+    margin-left: 0.5rem;
+    padding: 0.25rem;
+    border-radius: 4px;
+    background-color: #333333;
+    color: #B8860B;
+    border: 1px solid #B8860B;
+    font-family: 'Roboto', sans-serif;
+}
+
+#reservationsTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    font-family: 'Roboto', sans-serif;
+}
+
+#reservationsTable th, #reservationsTable td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+#reservationsTable th {
+    background-color: #f2f2f2;
+}
+
+#qrcode {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+#qrcode img {
+    border: 2px solid #333;
+    padding: 10px;
+    background-color: #fff;
+    max-width: 200px;
+}
+
+
+/* Media Queries για Responsive Design */
+
+/* Μικρές οθόνες (Κινητά τηλέφωνα) */
+@media (max-width: 768px) {
+    .header-container {
+        flex-direction: column;
+        padding: 0 1rem;
+    }
+
+    .logo {
+        margin-bottom: 1rem;
+    }
+
+    .lang-selector-container {
+        margin-top: 1rem;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    .reservation-form-container, .admin-login-container, .admin-panel-container {
+        padding: 1.5rem;
+    }
+}
+
+/* Μεσαίες οθόνες (Tablets) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .header-container {
+        padding: 0 1.5rem;
+    }
+
+    h1 {
+        font-size: 1.8rem;
+    }
+}
