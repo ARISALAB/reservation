@@ -1,92 +1,110 @@
 <!DOCTYPE html>
 <html lang="el">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pandrosou Garden Restaurant - Κράτηση</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pandrosou Garden Restaurant - Κράτηση</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f4ef;
+      padding: 20px;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #4b6043;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      color: #333;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 10px;
+      background: #4b6043;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #3a4e36;
+    }
+    .success {
+      text-align: center;
+      margin-top: 20px;
+      color: green;
+    }
+  </style>
 </head>
 <body>
-    <!-- Message Box for alerts -->
-    <div id="messageBox" class="message-box hidden">
-        <p id="messageText"></p>
+  <div class="container">
+    <h2>Κράτηση Τραπεζιού</h2>
+    <form id="bookingForm">
+      <label>Ονοματεπώνυμο:</label>
+      <input type="text" name="name" required>
+
+      <label>Τηλέφωνο:</label>
+      <input type="tel" name="phone" required>
+
+      <label>Email:</label>
+      <input type="email" name="email" required>
+
+      <label>Ημερομηνία:</label>
+      <input type="date" name="date" required>
+
+      <label>Ώρα:</label>
+      <input type="time" name="time" required>
+
+      <label>Αριθμός Ατόμων:</label>
+      <input type="number" name="guests" min="1" required>
+
+      <label>Σχόλια:</label>
+      <textarea name="message" rows="3"></textarea>
+
+      <button type="submit">Κάνε Κράτηση</button>
+    </form>
+    <div id="successMsg" class="success" style="display:none;">
+      ✅ Η κράτηση στάλθηκε! Θα επικοινωνήσουμε σύντομα.
     </div>
+  </div>
 
-    <header>
-        <div class="header-container">
-            <div class="logo">
-                <img src="https://placehold.co/50x50/333333/B8860B?text=PG" alt="Pandrosou Garden Restaurant Logo">
-            </div>
-            <h1 data-key="header_title">Pandrosou Garden Restaurant</h1>
-            <div class="lang-selector-container">
-                <label for="language-selector" data-key="language_label">Γλώσσα:</label>
-                <select id="language-selector">
-                    <option value="el">Ελληνικά</option>
-                    <option value="en">English</option>
-                    <option value="fr">Français</option>
-                    <option value="es">Español</option>
-                </select>
-            </div>
-        </div>
-    </header>
+  <script>
+    document.getElementById("bookingForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const data = Object.fromEntries(formData.entries());
 
-    <main>
-        <div class="form-container">
-            <h2 data-key="welcome_message">Καλώς ορίσατε</h2>
-            <p data-key="welcome_tagline">Ένα ταξίδι γεύσεων σας περιμένει.</p>
-            <form id="reservationForm">
-                <div class="form-group">
-                    <label for="name" data-key="form_name_label">Ονοματεπώνυμο:</label>
-                    <input type="text" id="name" name="name" required>
-                </div>
-                <div class="form-group">
-                    <label for="phone" data-key="form_phone_label">Τηλέφωνο:</label>
-                    <input type="tel" id="phone" name="phone" required>
-                </div>
-                <div class="form-group">
-                    <label for="email" data-key="form_email_label">Email:</label>
-                    <input type="email" id="email" name="email" required>
-                </div>
-                <div class="form-group">
-                    <label for="date" data-key="form_date_label">Ημερομηνία:</label>
-                    <input type="date" id="date" name="date" required>
-                </div>
-                <div class="form-group">
-                    <label for="time" data-key="form_time_label">Ώρα:</label>
-                    <input type="time" id="time" name="time" required>
-                </div>
-                <div class="form-group">
-                    <label for="guests" data-key="form_guests_label">Αριθμός Ατόμων:</label>
-                    <input type="number" id="guests" name="guests" min="1" max="20" required>
-                </div>
-                <button type="submit" data-key="submit_button_text">Υποβολή Κράτησης</button>
-            </form>
+      const response = await fetch("/.netlify/functions/sendBookingEmail", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
 
-            <div id="confirmationMessage" class="hidden">
-                <p data-key="confirmation_message_text">Σας ευχαριστούμε! Η κράτησή σας καταχωρήθηκε επιτυχώς.</p>
-            </div>
-
-            <div id="reservationSummary" class="hidden">
-                <h3 data-key="reservation_summary_title">Σύνοψη Κράτησης</h3>
-                <p id="summaryName"></p>
-                <p id="summaryDate"></p>
-                <p id="summaryTime"></p>
-                <p id="summaryGuests"></p>
-            </div>
-        </div>
-    </main>
-
-    <footer>
-        <p data-key="footer_text">&copy; 2025 Pandrosou Garden Restaurant</p>
-    </footer>
-    <script type="module" src="script.js"></script>
+      if (response.ok) {
+        document.getElementById("successMsg").style.display = "block";
+        this.reset();
+      } else {
+        alert("Σφάλμα! Δοκιμάστε ξανά.");
+      }
+    });
+  </script>
 </body>
 </html>
