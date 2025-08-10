@@ -4,37 +4,46 @@ exports.handler = async (event) => {
   try {
     const data = JSON.parse(event.body);
 
-    // Δημιουργία transporter για την αποστολή email
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: process.env.GMAIL_USER, // Από Netlify Environment Variables
-        pass: process.env.GMAIL_PASS  // Κωδικός εφαρμογής (App Password)
+        user: process.env.GMAIL_USER, // From Netlify Environment Variables
+        pass: process.env.GMAIL_PASS  // App Password from Google
       }
     });
 
-    // Email προς το κατάστημα
     const mailOptionsToRestaurant = {
-      from: `"Σύστημα Κρατήσεων" <${process.env.GMAIL_USER}>`,
+      from: `"Pandrosou Garden" <${process.env.GMAIL_USER}>`,
       to: "pandrosougarden@gmail.com",
-      subject: `Νέα Κράτηση από τον/την ${data.name}`,
+      subject: `New Reservation from ${data.name}`,
       html: `
-        <h3>Στοιχεία Κράτησης</h3>
+        <h3>Reservation Details</h3>
         <ul>
-            <li><strong>Ονοματεπώνυμο:</strong> ${data.name}</li>
+            <li><strong>Full Name:</strong> ${data.name}</li>
             <li><strong>Email:</strong> ${data.email}</li>
-            <li><strong>Τηλέφωνο:</strong> ${data.phone}</li>
-            <li><strong>Ημερομηνία:</strong> ${data.date}</li>
-            <li><strong>Ώρα:</strong> ${data.time}</li>
-            <li><strong>Αριθμός Ατόμων:</strong> ${data.guests}</li>
-            <li><strong>Σχόλια:</strong> ${data.message}</li>
+            <li><strong>Phone:</strong> ${data.phone}</li>
+            <li><strong>Date:</strong> ${data.date}</li>
+            <li><strong>Time:</strong> ${data.time}</li>
+            <li><strong>Number of People:</strong> ${data.guests}</li>
+            <li><strong>Comments:</strong> ${data.message}</li>
         </ul>
       `
     };
 
-    // Αποστολή του email στο κατάστημα
     await transporter.sendMail(mailOptionsToRestaurant);
 
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ message: "Reservation sent successfully!" })
+    };
+  } catch (error) {
+    console.error("Email sending error:", error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "Error sending email" })
+    };
+  }
+}; // This is the final closing brace for the exports.handler function
     // Εδώ μπορείς να προσθέσεις κώδικα για το email επιβεβαίωσης προς τον πελάτη αν θέλεις
 
     return {
