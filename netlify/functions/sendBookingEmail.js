@@ -7,8 +7,8 @@ exports.handler = async (event) => {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: process.env.GMAIL_USER, // From Netlify Environment Variables
-        pass: process.env.GMAIL_PASS  // App Password from Google
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS
       }
     });
 
@@ -19,13 +19,13 @@ exports.handler = async (event) => {
       html: `
         <h3>Reservation Details</h3>
         <ul>
-            <li><strong>Full Name:</strong> ${data.name}</li>
-            <li><strong>Email:</strong> ${data.email}</li>
-            <li><strong>Phone:</strong> ${data.phone}</li>
-            <li><strong>Date:</strong> ${data.date}</li>
-            <li><strong>Time:</strong> ${data.time}</li>
-            <li><strong>Number of People:</strong> ${data.guests}</li>
-            <li><strong>Comments:</strong> ${data.message}</li>
+          <li><strong>Full Name:</strong> ${data.name}</li>
+          <li><strong>Email:</strong> ${data.email}</li>
+          <li><strong>Phone:</strong> ${data.phone}</li>
+          <li><strong>Date:</strong> ${data.date}</li>
+          <li><strong>Time:</strong> ${data.time}</li>
+          <li><strong>Number of People:</strong> ${data.guests}</li>
+          <li><strong>Comments:</strong> ${data.message}</li>
         </ul>
       `
     };
@@ -34,6 +34,17 @@ exports.handler = async (event) => {
 
     return {
       statusCode: 200,
+      body: JSON.stringify({ message: "Reservation sent successfully!" })
+    };
+
+  } catch (error) {
+    console.error("Email sending error:", error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "Error sending email" })
+    };
+  }
+};
       body: JSON.stringify({ message: "Reservation sent successfully!" })
     };
   } catch (error) {
