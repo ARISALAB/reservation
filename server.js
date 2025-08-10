@@ -12,8 +12,7 @@ const DB_PATH = path.join(__dirname, 'db.json');
 
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, '../public')));
-
+app.use(express.static(path.join(__dirname)));
 // Συνάρτηση για ανάγνωση των κρατήσεων από το αρχείο
 const readReservations = () => {
     try {
@@ -54,4 +53,5 @@ app.post('/api/reservations', (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`Ο Server τρέχει στη διεύθυνση http://localhost:${PORT}`);
+
 });
