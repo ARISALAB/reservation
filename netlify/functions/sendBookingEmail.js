@@ -43,6 +43,15 @@ exports.handler = async (event) => {
       body: JSON.stringify({ error: "Error sending email" })
     };
   }
+};      body: JSON.stringify({ message: "Reservation sent successfully!" })
+    };
+  } catch (error) {
+    console.error("Email sending error:", error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "Error sending email" })
+    };
+  }
 }; // This is the final closing brace for the exports.handler function
     // Εδώ μπορείς να προσθέσεις κώδικα για το email επιβεβαίωσης προς τον πελάτη αν θέλεις
 
