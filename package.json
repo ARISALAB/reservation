@@ -1,0 +1,12 @@
+{
+  "name": "pandrosou-booking",
+  "version": "1.0.0",
+  "description": "Σύστημα κρατήσεων για το Pandrosou Garden Restaurant",
+  "main": "index.js",
+  "scripts": {
+    "start": "netlify dev"
+  },
+  "dependencies": {
+    "nodemailer": "^6.9.8"
+  }
+}
