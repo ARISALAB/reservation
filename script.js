@@ -1,5 +1,60 @@
-document.addEventListener('DOMContentLoaded', () => {
+// This script now handles all client-side logic for both the reservation and admin pages,
+// using Firebase Firestore for data persistence instead of a local server.
+
+// Import Firebase modules. These links assume the Firebase libraries are loaded
+// via script tags in the HTML.
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+import { getFirestore, collection, addDoc, onSnapshot, query, where, getDoc, doc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+import { getAuth, signInWithCustomToken, signInAnonymously } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // Firebase initialization variables provided by the environment
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+    if (Object.keys(firebaseConfig).length === 0) {
+        console.error('Firebase configuration not found. The application will not work correctly.');
+        return;
+    }
+    
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    let userId = null;
+
+    // Await authentication before proceeding with any Firestore operations
+    try {
+        if (initialAuthToken) {
+            await signInWithCustomToken(auth, initialAuthToken);
+        } else {
+            await signInAnonymously(auth);
+        }
+        userId = auth.currentUser.uid;
+        console.log("Authentication successful. User ID:", userId);
+    } catch (error) {
+        console.error('Firebase authentication failed:', error);
+        return;
+    }
+
+    const showMessage = (message, isError = false) => {
+        const messageBox = document.getElementById('messageBox');
+        const messageText = document.getElementById('messageText');
+        messageText.textContent = message;
+        messageBox.className = isError ? 'message-box error' : 'message-box success';
+        messageBox.classList.remove('hidden');
+        setTimeout(() => {
+            messageBox.classList.add('hidden');
+        }, 5000);
+    };
+
+    // Customer Reservation Page Logic (index.html)
     if (document.getElementById('reservationForm')) {
+        const form = document.getElementById('reservationForm');
+        const confirmationMessage = document.getElementById('confirmationMessage');
+        const reservationSummary = document.getElementById('reservationSummary');
+
         const translations = {
             el: {
                 language_label: 'Γλώσσα:',
@@ -34,6 +89,207 @@ document.addEventListener('DOMContentLoaded', () => {
                 form_time_label: 'Time:',
                 form_guests_label: 'Number of Guests:',
                 submit_button_text: 'Submit Reservation',
+                confirmation_message_text: 'Thank you! Your reservation has been successfully submitted.',
+                reservation_summary_title: 'Reservation Summary',
+                summary_name: 'Full Name:',
+                summary_date: 'Date:',
+                summary_time: 'Time:',
+                summary_guests: 'Number of Guests:',
+                footer_text: '© 2025 Pandrosou Garden Restaurant',
+                alert_fill_all: 'Please fill in all fields.'
+            },
+            fr: {
+                language_label: 'Langue:',
+                header_title: 'Pandrosou Garden Restaurant',
+                welcome_message: 'Bienvenue',
+                welcome_tagline: 'Un voyage de saveurs vous attend.',
+                form_name_label: 'Nom complet:',
+                form_phone_label: 'Téléphone:',
+                form_email_label: 'Email:',
+                form_date_label: 'Date:',
+                form_time_label: 'Heure:',
+                form_guests_label: 'Nombre de personnes:',
+                submit_button_text: 'Soumettre la réservation',
+                confirmation_message_text: 'Merci! Votre réservation a été soumise avec succès.',
+                reservation_summary_title: 'Résumé de la réservation',
+                summary_name: 'Nom complet:',
+                summary_date: 'Date:',
+                summary_time: 'Heure:',
+                summary_guests: 'Nombre de personnes:',
+                footer_text: '© 2025 Pandrosou Garden Restaurant',
+                alert_fill_all: 'Veuillez remplir tous les champs.'
+            },
+            es: {
+                language_label: 'Idioma:',
+                header_title: 'Pandrosou Garden Restaurant',
+                welcome_message: 'Bienvenido',
+                welcome_tagline: 'Un viaje de sabores le espera.',
+                form_name_label: 'Nombre completo:',
+                form_phone_label: 'Teléfono:',
+                form_email_label: 'Email:',
+                form_date_label: 'Fecha:',
+                form_time_label: 'Hora:',
+                form_guests_label: 'Número de personas:',
+                submit_button_text: 'Enviar reserva',
+                confirmation_message_text: '¡Gracias! Su reserva ha sido enviada con éxito.',
+                reservation_summary_title: 'Resumen de la reserva',
+                summary_name: 'Nombre completo:',
+                summary_date: 'Fecha:',
+                summary_time: 'Hora:',
+                summary_guests: 'Número de personas:',
+                footer_text: '© 2025 Pandrosou Garden Restaurant',
+                alert_fill_all: 'Por favor, complete todos los campos.'
+            }
+        };
+
+        const languageSelector = document.getElementById('language-selector');
+
+        const setLanguage = (lang) => {
+            document.querySelectorAll('[data-key]').forEach(element => {
+                const key = element.getAttribute('data-key');
+                if (translations[lang][key]) {
+                    element.textContent = translations[lang][key];
+                }
+            });
+            document.querySelector('[data-key="submit_button_text"]').textContent = translations[lang].submit_button_text;
+            document.querySelector('[data-key="language_label"]').textContent = translations[lang].language_label;
+            localStorage.setItem('selectedLang', lang);
+        };
+
+        languageSelector.addEventListener('change', (event) => {
+            setLanguage(event.target.value);
+        });
+
+        const savedLang = localStorage.getItem('selectedLang') || 'en';
+        languageSelector.value = savedLang;
+        setLanguage(savedLang);
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const email = document.getElementById('email').value;
+            const date = document.getElementById('date').value;
+            const time = document.getElementById('time').value;
+            const guests = document.getElementById('guests').value;
+
+            if (!name || !phone || !email || !date || !time || !guests) {
+                showMessage(translations[languageSelector.value].alert_fill_all, true);
+                return;
+            }
+
+            const newReservation = { name, phone, email, date, time: time, guests: parseInt(guests), timestamp: new Date().toISOString() };
+            
+            try {
+                // Add the new reservation to the "reservations" collection in Firestore
+                const reservationsCollectionRef = collection(db, `artifacts/${appId}/public/data/reservations`);
+                await addDoc(reservationsCollectionRef, newReservation);
+                
+                console.log('Η κράτηση υποβλήθηκε επιτυχώς στο Firestore.');
+                
+                form.classList.add('hidden');
+                confirmationMessage.classList.remove('hidden');
+                reservationSummary.classList.remove('hidden');
+
+                const currentLang = languageSelector.value;
+                document.getElementById('summaryName').textContent = `${translations[currentLang].summary_name} ${name}`;
+                document.getElementById('summaryDate').textContent = `${translations[currentLang].summary_date} ${date}`;
+                document.getElementById('summaryTime').textContent = `${translations[currentLang].summary_time} ${time}`;
+                document.getElementById('summaryGuests').textContent = `${translations[currentLang].summary_guests} ${guests}`;
+
+                setTimeout(() => {
+                    confirmationMessage.classList.add('hidden');
+                    reservationSummary.classList.add('hidden');
+                    form.classList.remove('hidden');
+                    form.reset();
+                }, 10000);
+            } catch (error) {
+                console.error('Σφάλμα κατά την υποβολή της κράτησης:', error);
+                showMessage('Παρουσιάστηκε σφάλμα. Παρακαλώ προσπαθήστε ξανά.', true);
+            }
+        });
+    }
+
+    // Admin Panel Logic (admin.html)
+    if (document.getElementById('adminLogin')) {
+        const adminPasswordInput = document.getElementById('adminPassword');
+        const loginButton = document.getElementById('loginButton');
+        const adminPanel = document.getElementById('adminPanel');
+        const adminDateInput = document.getElementById('adminDate');
+        const reservationsTableBody = document.querySelector('#reservationsTable tbody');
+        const adminUserIdDisplay = document.getElementById('adminUserIdDisplay');
+        
+        const ADMIN_PASSWORD = 'admin123';
+
+        // Display the user ID for debugging and sharing purposes
+        adminUserIdDisplay.textContent = `User ID: ${userId}`;
+
+        const displayReservations = (reservations, date) => {
+            reservationsTableBody.innerHTML = '';
+            
+            const filteredReservations = reservations.filter(res => res.date === date);
+
+            if (filteredReservations.length > 0) {
+                filteredReservations.sort((a, b) => a.time.localeCompare(b.time)); // Sort by time
+                filteredReservations.forEach(res => {
+                    const row = reservationsTableBody.insertRow();
+                    row.innerHTML = `
+                        <td>${res.time}</td>
+                        <td>${res.name}</td>
+                        <td>${res.phone}</td>
+                        <td>${res.guests}</td>
+                    `;
+                });
+            } else {
+                const row = reservationsTableBody.insertRow();
+                const cell = row.insertCell(0);
+                cell.colSpan = 4;
+                cell.textContent = 'Δεν βρέθηκαν κρατήσεις για αυτή την ημερομηνία.';
+                cell.style.textAlign = 'center';
+            }
+        };
+
+        loginButton.addEventListener('click', () => {
+            if (adminPasswordInput.value === ADMIN_PASSWORD) {
+                document.getElementById('adminLogin').classList.add('hidden');
+                adminPanel.classList.remove('hidden');
+                
+                const today = new Date().toISOString().split('T')[0];
+                adminDateInput.value = today;
+
+                const reservationsCollectionRef = collection(db, `artifacts/${appId}/public/data/reservations`);
+                
+                // Set up real-time listener for reservations
+                onSnapshot(reservationsCollectionRef, (snapshot) => {
+                    const reservations = snapshot.docs.map(doc => doc.data());
+                    const selectedDate = adminDateInput.value;
+                    displayReservations(reservations, selectedDate);
+                }, (error) => {
+                    console.error('Failed to listen to reservations:', error);
+                    reservationsTableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Αδυναμία φόρτωσης κρατήσεων.</td></tr>`;
+                });
+
+            } else {
+                showMessage('Λάθος κωδικός πρόσβασης.', true);
+                adminPasswordInput.value = '';
+            }
+        });
+
+        adminDateInput.addEventListener('change', (event) => {
+            const selectedDate = event.target.value;
+            // The onSnapshot listener will handle the update, no need to manually fetch.
+            // But we need to manually update the display with the current reservations
+            // for the newly selected date.
+            const reservationsCollectionRef = collection(db, `artifacts/${appId}/public/data/reservations`);
+            getDocs(reservationsCollectionRef).then(snapshot => {
+                const reservations = snapshot.docs.map(doc => doc.data());
+                displayReservations(reservations, selectedDate);
+            });
+        });
+
+    }
+});
                 confirmation_message_text: 'Thank you! Your reservation has been successfully submitted.',
                 reservation_summary_title: 'Reservation Summary',
                 summary_name: 'Full Name:',
@@ -932,6 +1188,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
 
 
 
